@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/joseflores1/rss/internal/config"
 )
@@ -12,26 +12,32 @@ const (
 )
 
 func main() {
-	// Read file and get Config struct
 	configStruct, errRead := config.Read()
 	if errRead != nil {
 		log.Fatal(errRead)
 	}
 
-	fmt.Printf("The contents of the initial config struct are: %+v\n", configStruct)
+	stateStruct := state{config: &configStruct}
 
-	// Set username of Config struct and write it to disk
-	errSetUser := configStruct.SetUser(CURRENT_USER)
-	if errSetUser != nil {
-		log.Fatal(errSetUser)
+	commandMap := make(map[string]func(*state, command) error)
+
+	commandsStruct := commands{commandList: commandMap}
+
+	commandsStruct.register("login", handlerLogin)
+
+	var commandName string
+	var cliArgs []string
+
+	if len(os.Args) < 3 {
+		log.Fatal("error: at least 2 arguments must be provided to the CLI\n")
+	} else {
+		commandName = os.Args[1]
+		cliArgs = os.Args[2:]
 	}
 
-	// Read updated file and get new Config struct
-	newConfigStruct, errNewRead := config.Read()
-	if errNewRead != nil {
-		log.Fatal(errNewRead)
+	errRun := commandsStruct.run(&stateStruct, command{name: commandName, arguments: cliArgs})
+	if errRun != nil {
+		log.Fatalf("error when trying to run %s command with %+v arguments: %s\n", commandName, cliArgs, errRun.Error())
 	}
 
-	// Print config struct's contents
-	fmt.Printf("The contents of the config struct are: %+v\n", newConfigStruct)
 }
