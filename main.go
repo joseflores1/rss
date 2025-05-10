@@ -20,7 +20,7 @@ func main() {
 	}
 
 	// Initialize necessary structs
-	stateStruct := state{config: &configStruct}
+	stateStruct := &state{config: &configStruct}
 	commandMap := make(map[string]func(*state, command) error)
 	commandsStruct := commands{commandList: commandMap}
 	commandsStruct.register("login", handlerLogin)
@@ -37,7 +37,7 @@ func main() {
 
 	// Run command
 	commandStruct := command{Name: commandName, Arguments: cliArgs}
-	errRun := commandsStruct.run(&stateStruct, commandStruct)
+	errRun := commandsStruct.run(stateStruct, commandStruct)
 	if errRun != nil {
 		log.Fatalf("error when trying to run %s command with %+v arguments: %s\n", commandName, cliArgs, errRun.Error())
 	}

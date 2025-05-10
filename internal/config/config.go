@@ -9,7 +9,7 @@ import (
 
 const (
 	JSON_NAME    = ".gatorconfig.json"
-	INITIAL_JSON = `{"db_url": "postgres://example"}`
+	INITIAL_JSON = `{"db_url": "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable"}`
 )
 
 type Config struct {
