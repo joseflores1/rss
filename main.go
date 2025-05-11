@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joseflores1/rss/internal/config"
+	_ "github.com/lib/pq"
 )
 
 type state struct {
