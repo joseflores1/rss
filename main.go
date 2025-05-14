@@ -1,14 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/joseflores1/rss/internal/config"
+	"github.com/joseflores1/rss/internal/database"
 	_ "github.com/lib/pq"
 )
 
 type state struct {
+	db *database.Queries
 	config *config.Config
 }
 
@@ -20,10 +23,20 @@ func main() {
 		log.Fatal(errRead)
 	}
 
+	// Open the database connection
+	db, errOpen := sql.Open("postgres", configStruct.DBURL)
+	if errOpen != nil {
+		log.Fatal("error when trying to open a connection to the database")
+	}
+	dbQueries := database.New(db)
+
 	// Initialize necessary structs
-	stateStruct := &state{config: &configStruct}
+	stateStruct := &state{db: dbQueries, config: &configStruct}
 	commandMap := make(map[string]func(*state, command) error)
 	commandsStruct := commands{commandList: commandMap}
+
+	// Register commands
+	commandsStruct.register("register", handlerRegister)
 	commandsStruct.register("login", handlerLogin)
 
 	// Get CLI args

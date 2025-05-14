@@ -1,23 +1,28 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 )
 
 func handlerLogin(s *state, cmd command) error {
 
+	// Check valid command input
 	if len(cmd.Arguments) != 1 {
 
 		return fmt.Errorf("usage is login <username>")
 	}
 
+	// Define variables
 	userName := cmd.Arguments[0]
-	errSetUser := s.config.SetUser(userName)
-	if errSetUser != nil {
-		return fmt.Errorf("error when trying to set username in login handler: %w", errSetUser)
-	}
+	dbQueries := s.db
 
-	fmt.Printf("The %s username has been set by the login handler!\n", userName)
+	// Check if the user is registered
+	_, errGetUser := dbQueries.GetUser(context.Background(), userName)
+	if errGetUser != nil {
+		log.Fatalf("can't not login with %s username because it is not registered!\n", userName)
+	}
 
 	return nil
 }
