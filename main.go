@@ -11,7 +11,7 @@ import (
 )
 
 type state struct {
-	db *database.Queries
+	db     *database.Queries
 	config *config.Config
 }
 
@@ -26,7 +26,7 @@ func main() {
 	// Open the database connection
 	db, errOpen := sql.Open("postgres", configStruct.DBURL)
 	if errOpen != nil {
-		log.Fatal("error when trying to open a connection to the database")
+		log.Fatalf("error when trying to open a connection to the database: %v", errOpen)
 	}
 	dbQueries := database.New(db)
 
