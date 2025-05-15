@@ -74,6 +74,7 @@ func handlerLogin(s *state, cmd command) error {
 
 func handlerUsers(s *state, cmd command) error {
 
+	// Check of unnecessary arguments
 	if len(cmd.Arguments) != 0 {
 		return fmt.Errorf("%s doesn't expect any arguments", cmd.Name)
 	}
@@ -82,7 +83,7 @@ func handlerUsers(s *state, cmd command) error {
 	dbQueries := s.db
 	usersSlice, errGetUsers := dbQueries.GetUsers(context.Background())
 	if errGetUsers != nil {
-		return fmt.Errorf("couldn't get users: %s", errGetUsers)
+		return fmt.Errorf("couldn't get users: %w", errGetUsers)
 	}
 
 	// Print slice of users
@@ -107,4 +108,3 @@ func printUser(user database.User) {
 	fmt.Printf(" * ID:      %v\n", user.ID)
 	fmt.Printf(" * Name:    %v\n", user.Name)
 }
-

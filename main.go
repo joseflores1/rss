@@ -40,6 +40,7 @@ func main() {
 	commandsStruct.register("login", handlerLogin)
 	commandsStruct.register("reset", handlerReset)
 	commandsStruct.register("users", handlerUsers)
+	commandsStruct.register("agg", handlerAgg)
 
 	// Get CLI args
 	var commandName string
