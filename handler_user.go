@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/joseflores1/rss/internal/config"
 	"github.com/joseflores1/rss/internal/database"
 )
 
@@ -75,26 +74,19 @@ func handlerLogin(s *state, cmd command) error {
 
 func handlerUsers(s *state, cmd command) error {
 
-	// Check for no arguments
 	if len(cmd.Arguments) != 0 {
 		return fmt.Errorf("%s doesn't expect any arguments", cmd.Name)
 	}
 
-	// Read config file to get active user's name
-	dbQueries := s.db
-	configStruct, errRead := config.Read()
-	if errRead != nil {
-		return fmt.Errorf("couldn't read config file within users handler: %w", errRead)
-	}
-	currentName := configStruct.CurrentUserName
-
 	// Get Users slice
+	dbQueries := s.db
 	usersSlice, errGetUsers := dbQueries.GetUsers(context.Background())
 	if errGetUsers != nil {
 		return fmt.Errorf("couldn't get users: %s", errGetUsers)
 	}
 
 	// Print slice of users
+	currentName := s.config.CurrentUserName
 	if len(usersSlice) == 0 {
 		fmt.Println("There are no registered users!")
 	}
