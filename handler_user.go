@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/joseflores1/rss/internal/config"
 	"github.com/joseflores1/rss/internal/database"
 )
 
@@ -72,7 +73,46 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
+func handlerUsers(s *state, cmd command) error {
+
+	// Check for no arguments
+	if len(cmd.Arguments) != 0 {
+		return fmt.Errorf("%s doesn't expect any arguments", cmd.Name)
+	}
+
+	// Read config file to get active user's name
+	dbQueries := s.db
+	configStruct, errRead := config.Read()
+	if errRead != nil {
+		return fmt.Errorf("couldn't read config file within users handler: %w", errRead)
+	}
+	currentName := configStruct.CurrentUserName
+
+	// Get Users slice
+	usersSlice, errGetUsers := dbQueries.GetUsers(context.Background())
+	if errGetUsers != nil {
+		return fmt.Errorf("couldn't get users: %s", errGetUsers)
+	}
+
+	// Print slice of users
+	if len(usersSlice) == 0 {
+		fmt.Println("There are no registered users!")
+	}
+	for _, user := range usersSlice {
+		if user.Name == currentName {
+			fmt.Printf("* %v (current)\n", user.Name)
+		} else {
+			fmt.Printf("* %v\n", user.Name)
+		}
+	}
+
+	return nil
+}
+
 func printUser(user database.User) {
+
+	// Print user's ID and Name
 	fmt.Printf(" * ID:      %v\n", user.ID)
 	fmt.Printf(" * Name:    %v\n", user.Name)
 }
+
