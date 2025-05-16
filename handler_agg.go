@@ -11,25 +11,36 @@ const (
 
 func handlerAgg(s *state, cmd command) error {
 
+	// Check for absence of args
 	if len(cmd.Arguments) != 0 {
 		return fmt.Errorf("%s doesn't accept arguments", cmd.Name)
 	}
 
+	// Fetch feed
 	rssFeed, errFetch := fetchFeed(context.Background(), FETCH_URL)
 	if errFetch != nil {
 		return fmt.Errorf("couldn't fetch given URL: %w", errFetch)
 	}
 
+	// Print feed
 	printRSSFeed(rssFeed)
 	return nil
 }
 
 func printRSSFeed(feed *RSSFeed) {
 
+	// Print channel's info
 	fmt.Printf(" * Title: %v\n", feed.Channel.Title)
-	fmt.Printf(" * Link: %v\n", feed.Channel.Link)
+	for i, link := range feed.Channel.Link {
+		if link.Text != "" {
+			fmt.Printf(" * Link %v: %v\n", i + 1, link.Text)
+		} else if link.Href != "" {
+			fmt.Printf(" * Link %v: %v\n", i + 1, link.Href)
+		}
+	}
 	fmt.Printf(" * Description: %v\n", feed.Channel.Description)
 
+	// Print item's list
 	fmt.Println(" * Item's list:")
 	fmt.Println("--------------------")
 	for i, item := range feed.Channel.Item {

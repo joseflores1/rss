@@ -10,15 +10,22 @@ import (
 	"time"
 )
 
+// Save channel info
 type RSSFeed struct {
 	Channel struct {
-		Title       string    `xml:"title"`
-		Link        string    `xml:"link"`
+		Title string `xml:"title"`
+		Link  []struct {
+			Text string `xml:",chardata"`
+			Href string `xml:"href,attr"`
+			Rel  string `xml:"rel,attr"`
+			Type string `xml:"type,attr"`
+		} `xml:"link"`
 		Description string    `xml:"description"`
 		Item        []RSSItem `xml:"item"`
 	} `xml:"channel"`
 }
 
+// Save item info that is within channel
 type RSSItem struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
@@ -54,7 +61,6 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 		return &RSSFeed{}, fmt.Errorf("couldn't read response body: %w", errRead)
 	}
 
-
 	// Unmarshal response body
 	var rssFeed RSSFeed
 	errUnmarshal := xml.Unmarshal(bodyData, &rssFeed)
@@ -74,7 +80,6 @@ func unescapeRSS(feed *RSSFeed) {
 	// Change of fields
 	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
 	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
-
 	for i := 0; i < len(feed.Channel.Item); i++ {
 		feed.Channel.Item[i].Title = html.UnescapeString(feed.Channel.Item[i].Title)
 		feed.Channel.Item[i].Description = html.UnescapeString(feed.Channel.Item[i].Description)
