@@ -7,6 +7,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -54,9 +55,15 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 		return &RSSFeed{}, fmt.Errorf("couldn't read response body: %w", errRead)
 	}
 
+	// Remove any elements with namespaces using regex
+	// This will remove <atom:link> elements entirely
+	bodyStr := string(bodyData)
+	re := regexp.MustCompile(`<[a-zA-Z0-9]+:[^>]+/>`)
+	bodyStr = re.ReplaceAllString(bodyStr, "")
+
 	// Unmarshal response body
 	var rssFeed RSSFeed
-	errUnmarshal := xml.Unmarshal(bodyData, &rssFeed)
+	errUnmarshal := xml.Unmarshal([]byte(bodyStr), &rssFeed)
 	if errUnmarshal != nil {
 		return &RSSFeed{}, fmt.Errorf("couldn't unmarshal response body: %w", errUnmarshal)
 	}
@@ -74,7 +81,7 @@ func unescapeRSS(feed *RSSFeed) {
 	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
 	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
 
-	for i := 0; i < len(feed.Channel.Item); i++{
+	for i := 0; i < len(feed.Channel.Item); i++ {
 		feed.Channel.Item[i].Title = html.UnescapeString(feed.Channel.Item[i].Title)
 		feed.Channel.Item[i].Description = html.UnescapeString(feed.Channel.Item[i].Description)
 	}
