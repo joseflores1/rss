@@ -33,9 +33,9 @@ func printRSSFeed(feed *RSSFeed) {
 	fmt.Printf(" * Title: %v\n", feed.Channel.Title)
 	for i, link := range feed.Channel.Link {
 		if link.Text != "" {
-			fmt.Printf(" * Link %v: %v\n", i + 1, link.Text)
+			fmt.Printf(" * Link %v: %v\n", i+1, link.Text)
 		} else if link.Href != "" {
-			fmt.Printf(" * Link %v: %v\n", i + 1, link.Href)
+			fmt.Printf(" * Link %v: %v\n", i+1, link.Href)
 		}
 	}
 	fmt.Printf(" * Description: %v\n", feed.Channel.Description)

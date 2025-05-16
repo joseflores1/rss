@@ -9,7 +9,7 @@ import (
 	"github.com/joseflores1/rss/internal/database"
 )
 
-func handlerAddFeed(s *state, cmd command) error {	
+func handlerAddFeed(s *state, cmd command) error {
 
 	// Check for right number of arguments
 	if len(cmd.Arguments) != 2 {
@@ -30,12 +30,12 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	// Create feed into database
 	dbFeed := database.CreateFeedParams{
-		ID: uuid.New(),
+		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		Name: feedName,
-		Url: feedURL,
-		UserID: user.ID,
+		Name:      feedName,
+		Url:       feedURL,
+		UserID:    user.ID,
 	}
 
 	createdFeed, errCreatedFeed := dbQueries.CreateFeed(context.Background(), dbFeed)
@@ -45,16 +45,49 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	// Print feed to stdout
 	fmt.Println("Feed created successfully!")
-	printFeed(createdFeed)
+	printFeed(createdFeed, user)
 
 	return nil
 }
 
-func printFeed(feed database.Feed) {
-	// Print user's ID and Name
-	fmt.Printf(" * ID:      %v\n", feed.ID)
-	fmt.Printf(" * Name:    %s\n", feed.Name)
-	fmt.Printf(" * URL:     %s\n", feed.Url)
+func handlerFeeds(s *state, cmd command) error {
 
+	// Check of unnecessary arguments
+	if len(cmd.Arguments) != 0 {
+		return fmt.Errorf("%s doesn't expect any arguments", cmd.Name)
+	}
 
+	// Get Feeds slice
+	dbQueries := s.db
+	feedsSlice, errGetFeeds := dbQueries.GetFeeds(context.Background())
+	if errGetFeeds != nil {
+		return fmt.Errorf("couldn't get feeds: %w", errGetFeeds)
+	}
+
+	// Print slice of feeds
+	if len(feedsSlice) == 0 {
+		fmt.Println("There are no registered feeds!")
+		return nil
+	}
+	// Print list of feeds with their name, URL and creator's name
+
+	for i, feed := range feedsSlice {
+		fmt.Printf("Feed %d:\n", i + 1)
+		user, errGetUser := dbQueries.GetUserById(context.Background(), feed.UserID)
+		if errGetUser != nil {
+			return fmt.Errorf("couldn't get feed's user: %w", errGetUser)
+		}
+		printFeed(feed, user)
+		fmt.Println("------------------------------------")
+	}
+	return nil
+}
+
+func printFeed(feed database.Feed, user database.User) {
+	fmt.Printf("* ID:            %s\n", feed.ID)
+	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)
+	fmt.Printf("* Name:          %s\n", feed.Name)
+	fmt.Printf("* URL:           %s\n", feed.Url)
+	fmt.Printf("* User:          %s\n", user.Name)
 }

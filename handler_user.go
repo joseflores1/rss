@@ -90,6 +90,7 @@ func handlerUsers(s *state, cmd command) error {
 	currentName := s.config.CurrentUserName
 	if len(usersSlice) == 0 {
 		fmt.Println("There are no registered users!")
+		return nil
 	}
 	for _, user := range usersSlice {
 		if user.Name == currentName {
