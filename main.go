@@ -41,7 +41,7 @@ func main() {
 	commandsStruct.register("reset", handlerReset)
 	commandsStruct.register("users", handlerUsers)
 	commandsStruct.register("agg", handlerAgg)
-
+	commandsStruct.register("addfeed", handlerAddFeed)
 	// Get CLI args
 	var commandName string
 	var cliArgs []string

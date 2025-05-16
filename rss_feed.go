@@ -39,7 +39,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Create the new request
 	req, errNewReq := http.NewRequestWithContext(ctx, "GET", feedURL, nil)
 	if errNewReq != nil {
-		return &RSSFeed{}, fmt.Errorf("couldn't create new request with context: %w", errNewReq)
+		return nil, fmt.Errorf("couldn't create new request with context: %w", errNewReq)
 	}
 
 	// Set User-Agent header and initialize client
@@ -50,7 +50,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Do the request through the client
 	resp, errDo := client.Do(req)
 	if errDo != nil {
-		return &RSSFeed{}, fmt.Errorf("couldn't do the request: %w", errDo)
+		return nil, fmt.Errorf("couldn't do the request: %w", errDo)
 	}
 
 	defer resp.Body.Close()
@@ -58,14 +58,14 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Read response body
 	bodyData, errRead := io.ReadAll(resp.Body)
 	if errRead != nil {
-		return &RSSFeed{}, fmt.Errorf("couldn't read response body: %w", errRead)
+		return nil, fmt.Errorf("couldn't read response body: %w", errRead)
 	}
 
 	// Unmarshal response body
 	var rssFeed RSSFeed
 	errUnmarshal := xml.Unmarshal(bodyData, &rssFeed)
 	if errUnmarshal != nil {
-		return &RSSFeed{}, fmt.Errorf("couldn't unmarshal response body: %w", errUnmarshal)
+		return nil, fmt.Errorf("couldn't unmarshal response body: %w", errUnmarshal)
 	}
 
 	// Unescape Titles and Descriptions
