@@ -72,7 +72,7 @@ func handlerFeeds(s *state, cmd command) error {
 	// Print list of feeds with their name, URL and creator's name
 
 	for i, feed := range feedsSlice {
-		fmt.Printf("Feed %d:\n", i + 1)
+		fmt.Printf("Feed %d:\n", i+1)
 		user, errGetUser := dbQueries.GetUserById(context.Background(), feed.UserID)
 		if errGetUser != nil {
 			return fmt.Errorf("couldn't get feed's user: %w", errGetUser)
