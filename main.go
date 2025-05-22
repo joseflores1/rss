@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -41,10 +43,10 @@ func main() {
 	commandsStruct.register("reset", handlerReset)
 	commandsStruct.register("users", handlerUsers)
 	commandsStruct.register("agg", handlerAgg)
-	commandsStruct.register("addfeed", handlerAddFeed)
+	commandsStruct.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	commandsStruct.register("feeds", handlerFeeds)
-	commandsStruct.register("follow", handlerFollow)
-	commandsStruct.register("following", handlerFollowing)
+	commandsStruct.register("follow", middlewareLoggedIn(handlerFollow))
+	commandsStruct.register("following", middlewareLoggedIn(handlerFollowing))
 
 	// Get CLI args
 	var commandName string
@@ -63,4 +65,16 @@ func main() {
 		log.Fatalf("error when trying to run %s command with %+v arguments: %s\n", commandName, cliArgs, errRun.Error())
 	}
 
+}
+
+func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
+	return func(s *state, cmd command) error {
+		// Get current user
+		user, errGetUser := s.db.GetUser(context.Background(), s.config.CurrentUserName)
+		if errGetUser != nil {
+			return fmt.Errorf("couldn't get user: %w", errGetUser)
+		}
+		return handler(s, cmd, user)
+
+	}
 }

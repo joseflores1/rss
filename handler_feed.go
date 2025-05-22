@@ -10,7 +10,7 @@ import (
 	"github.com/joseflores1/rss/internal/database"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 
 	// Check for right number of arguments
 	if len(cmd.Arguments) != 2 {
@@ -18,17 +18,9 @@ func handlerAddFeed(s *state, cmd command) error {
 	}
 
 	// Initialize appropiate variables
-	currentUser := s.config.CurrentUserName
 	dbQueries := s.db
 	feedName := cmd.Arguments[0]
 	feedURL := cmd.Arguments[1]
-
-	// Get current user
-	user, errGetUser := dbQueries.GetUser(context.Background(), currentUser)
-	if errGetUser != nil {
-		return fmt.Errorf("couldn't get user: %w", errGetUser)
-	}
-
 
 	_, errGetFeedBYURL := dbQueries.GetFeedByURL(context.Background(), feedURL)
 

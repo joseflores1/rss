@@ -10,7 +10,7 @@ import (
 	"github.com/joseflores1/rss/internal/database"
 )
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 
 	// Check for right number of arguments
 	if len(cmd.Arguments) != 1 {
@@ -18,15 +18,8 @@ func handlerFollow(s *state, cmd command) error {
 	}
 
 	// Initialize appropiate variables
-	currentUser := s.config.CurrentUserName
 	dbQueries := s.db
 	feedURL := cmd.Arguments[0]
-
-	// Get current user
-	user, errGetUser := dbQueries.GetUser(context.Background(), currentUser)
-	if errGetUser != nil {
-		return fmt.Errorf("couldn't get user: %w", errGetUser)
-	}
 
 	// Get feed by URL
 	feed, errGetFeedURL := dbQueries.GetFeedByURL(context.Background(), feedURL)
@@ -69,7 +62,7 @@ func handlerFollow(s *state, cmd command) error {
 }
 
 
-func handlerFollowing(s *state, cmd command) error {
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	
 	// Check num of args
 	if len(cmd.Arguments) != 0 {
@@ -78,13 +71,6 @@ func handlerFollowing(s *state, cmd command) error {
 
 	currentUser := s.config.CurrentUserName
 	dbQueries := s.db
-
-	// Get current user
-	user, errGetUser := dbQueries.GetUser(context.Background(), currentUser)
-	if errGetUser != nil {
-		return fmt.Errorf("couldn't get user: %w", errGetUser)
-	}
-
 	// Get all feed follow from an user
 	feedFollowsSlice, errGetFeedFollowSlice := dbQueries.GetFeedFollowsForUser(context.Background(), user.ID)
 
@@ -94,6 +80,7 @@ func handlerFollowing(s *state, cmd command) error {
 
 	if len(feedFollowsSlice) == 0 {
 		fmt.Println("There are no registered feed follows for this user!")
+		return nil
 	}
 
 	printFeedFollowsByUser(feedFollowsSlice, currentUser)
