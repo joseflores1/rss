@@ -47,7 +47,7 @@ func main() {
 	commandsStruct.register("feeds", handlerFeeds)
 	commandsStruct.register("follow", middlewareLoggedIn(handlerFollow))
 	commandsStruct.register("following", middlewareLoggedIn(handlerFollowing))
-
+	commandsStruct.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 	// Get CLI args
 	var commandName string
 	var cliArgs []string
