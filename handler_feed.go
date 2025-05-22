@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -28,6 +29,15 @@ func handlerAddFeed(s *state, cmd command) error {
 		return fmt.Errorf("couldn't get user: %w", errGetUser)
 	}
 
+
+	_, errGetFeedBYURL := dbQueries.GetFeedByURL(context.Background(), feedURL)
+
+	if errGetFeedBYURL == sql.ErrNoRows {
+		fmt.Printf("Feed not found, adding!\n")
+	} else {
+		return fmt.Errorf("feed is already added")
+	}
+	
 	// Create feed into database
 	dbFeed := database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -43,10 +53,24 @@ func handlerAddFeed(s *state, cmd command) error {
 		return fmt.Errorf("couldn't create '%s' feed from %s: %w", createdFeed.Name, createdFeed.Url, errCreatedFeed)
 	}
 
+	// Initialize feed follow struct for further creation
+	dbFeedFollow := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		FeedID:    createdFeed.ID,
+	}
+
+	// Create feed follow record
+	_, errCreateFeedFollow := dbQueries.CreateFeedFollow(context.Background(), dbFeedFollow)
+	if errCreateFeedFollow != nil {
+		return fmt.Errorf("couldn't create feed follow: %w", errCreateFeedFollow)
+	}
+
 	// Print feed to stdout
 	fmt.Println("Feed created successfully!")
 	printFeed(createdFeed, user)
-
 	return nil
 }
 
@@ -54,7 +78,7 @@ func handlerFeeds(s *state, cmd command) error {
 
 	// Check of unnecessary arguments
 	if len(cmd.Arguments) != 0 {
-		return fmt.Errorf("%s doesn't expect any arguments", cmd.Name)
+		return fmt.Errorf("%s doesn't accept any arguments", cmd.Name)
 	}
 
 	// Get Feeds slice
@@ -69,8 +93,8 @@ func handlerFeeds(s *state, cmd command) error {
 		fmt.Println("There are no registered feeds!")
 		return nil
 	}
-	// Print list of feeds with their name, URL and creator's name
 
+	// Print list of feeds with their name, URL and creator's name
 	for i, feed := range feedsSlice {
 		fmt.Printf("Feed %d:\n", i+1)
 		user, errGetUser := dbQueries.GetUserById(context.Background(), feed.UserID)
@@ -80,10 +104,12 @@ func handlerFeeds(s *state, cmd command) error {
 		printFeed(feed, user)
 		fmt.Println("------------------------------------")
 	}
+
 	return nil
 }
 
 func printFeed(feed database.Feed, user database.User) {
+
 	fmt.Printf("* ID:            %s\n", feed.ID)
 	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
 	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)

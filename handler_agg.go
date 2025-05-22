@@ -13,7 +13,7 @@ func handlerAgg(s *state, cmd command) error {
 
 	// Check for absence of args
 	if len(cmd.Arguments) != 0 {
-		return fmt.Errorf("%s doesn't accept arguments", cmd.Name)
+		return fmt.Errorf("%s doesn't accept any arguments", cmd.Name)
 	}
 
 	// Fetch feed

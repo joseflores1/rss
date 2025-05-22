@@ -44,6 +44,8 @@ func main() {
 	commandsStruct.register("addfeed", handlerAddFeed)
 	commandsStruct.register("feeds", handlerFeeds)
 	commandsStruct.register("follow", handlerFollow)
+	commandsStruct.register("following", handlerFollowing)
+
 	// Get CLI args
 	var commandName string
 	var cliArgs []string

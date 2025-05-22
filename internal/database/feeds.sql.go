@@ -73,6 +73,29 @@ func (q *Queries) GetFeedByURL(ctx context.Context, url string) (Feed, error) {
 	return i, err
 }
 
+const getFeedUnique = `-- name: GetFeedUnique :one
+SELECT id, created_at, updated_at, name, url, user_id FROM feeds WHERE url = $1 AND user_id = $2
+`
+
+type GetFeedUniqueParams struct {
+	Url    string
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetFeedUnique(ctx context.Context, arg GetFeedUniqueParams) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, getFeedUnique, arg.Url, arg.UserID)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const getFeeds = `-- name: GetFeeds :many
 SELECT id, created_at, updated_at, name, url, user_id FROM feeds
 `
