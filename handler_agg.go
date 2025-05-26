@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -26,41 +27,38 @@ func handlerAgg(s *state, cmd command) error {
 	for ; ; <-ticker.C {
 		fmt.Println("INITIATING FEED")
 		fmt.Println("==========================================================")
-		errScrape := scrapeFeeds(s)
-		if errScrape != nil {
-			return fmt.Errorf("couldnt scrape feeds: %w", errScrape)
-		}
+		scrapeFeeds(s)
 		fmt.Println("ENDING FEED")
 		fmt.Println("==========================================================")
 		fmt.Printf("\n\n")
 	}
 }
 
-func scrapeFeeds(s *state) error {
+func scrapeFeeds(s *state) {
 
 	dbQueries := s.db
 	// Get next feed to fetch based on date
 	nextFeed, errGetNextFeed := dbQueries.GetNextFeedToFetch(context.Background())
 	if errGetNextFeed != nil {
-		return fmt.Errorf("couldn't get next feed: %w", errGetNextFeed)
+		log.Println("couldn't get next feed", errGetNextFeed)
+		return 
 	}
 
 	// Mark fetched feed
 	errMarkFeed := dbQueries.MarkFeedFetched(context.Background(), nextFeed.ID)
 	if errMarkFeed != nil {
-		return fmt.Errorf("couldn't mark fetched feed: %w", errMarkFeed)
+		log.Println("couldn't mark fetched feed", errMarkFeed)
+		return
 	}
 
 	// Get feed by URL
 	feed, errGetFeedByURL := fetchFeed(context.Background(), nextFeed.Url)
 	if errGetFeedByURL != nil {
-		return fmt.Errorf("couldn't fetch feed by URL: %w", errGetFeedByURL)
+		log.Println("couldn't fetch feed by URL", errGetFeedByURL)
+		return 
 	}
 
 	printRSSFeed(feed)
-
-	return nil
-
 }
 func printRSSFeed(feed *RSSFeed) {
 
