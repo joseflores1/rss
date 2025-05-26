@@ -20,12 +20,20 @@ func handlerAgg(s *state, cmd command) error {
 		return fmt.Errorf("couldn't parse time_between_reqs argument: %w", errParseTime)
 	}
 
-	errScrape := scrapeFeeds(s)
-	if errScrape != nil {
-		return fmt.Errorf("couldnt scrape feeds: %w", errScrape)
+	// Run scrapping according to time_between_reqs arg
+	ticker := time.NewTicker(reqsTime)
+	fmt.Printf("Collecting feeds every %s!\n\n", cmd.Arguments[0])
+	for ; ; <-ticker.C {
+		fmt.Println("INITIATING FEED")
+		fmt.Println("==========================================================")
+		errScrape := scrapeFeeds(s)
+		if errScrape != nil {
+			return fmt.Errorf("couldnt scrape feeds: %w", errScrape)
+		}
+		fmt.Println("ENDING FEED")
+		fmt.Println("==========================================================")
+		fmt.Printf("\n\n")
 	}
-
-	return nil
 }
 
 func scrapeFeeds(s *state) error {
