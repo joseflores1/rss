@@ -3,30 +3,57 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
-const (
-	FETCH_URL = "https://www.wagslane.dev/index.xml"
-)
 
 func handlerAgg(s *state, cmd command) error {
 
 	// Check for absence of args
-	if len(cmd.Arguments) != 0 {
-		return fmt.Errorf("%s doesn't accept any arguments", cmd.Name)
+	if len(cmd.Arguments) != 1 {
+		return fmt.Errorf("usage: %s <time_between_reqs>", cmd.Name)
 	}
 
-	// Fetch feed
-	rssFeed, errFetch := fetchFeed(context.Background(), FETCH_URL)
-	if errFetch != nil {
-		return fmt.Errorf("couldn't fetch given URL: %w", errFetch)
+	// Parse the time arg
+	reqsTime, errParseTime := time.ParseDuration(cmd.Arguments[0])
+	if errParseTime != nil {
+		return fmt.Errorf("couldn't parse time_between_reqs argument: %w", errParseTime)
 	}
 
-	// Print feed
-	printRSSFeed(rssFeed)
+	errScrape := scrapeFeeds(s)
+	if errScrape != nil {
+		return fmt.Errorf("couldnt scrape feeds: %w", errScrape)
+	}
+
 	return nil
 }
 
+func scrapeFeeds(s *state) error {
+
+	dbQueries := s.db
+	// Get next feed to fetch based on date
+	nextFeed, errGetNextFeed := dbQueries.GetNextFeedToFetch(context.Background())
+	if errGetNextFeed != nil {
+		return fmt.Errorf("couldn't get next feed: %w", errGetNextFeed)
+	}
+
+	// Mark fetched feed
+	errMarkFeed := dbQueries.MarkFeedFetched(context.Background(), nextFeed.ID)
+	if errMarkFeed != nil {
+		return fmt.Errorf("couldn't mark fetched feed: %w", errMarkFeed)
+	}
+
+	// Get feed by URL
+	feed, errGetFeedByURL := fetchFeed(context.Background(), nextFeed.Url)
+	if errGetFeedByURL != nil {
+		return fmt.Errorf("couldn't fetch feed by URL: %w", errGetFeedByURL)
+	}
+
+	printRSSFeed(feed)
+
+	return nil
+
+}
 func printRSSFeed(feed *RSSFeed) {
 
 	// Print channel's info
