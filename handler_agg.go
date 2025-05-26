@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/joseflores1/rss/internal/database"
 )
 
 
@@ -54,21 +58,85 @@ func scrapeFeeds(s *state) {
 	// Get feed by URL
 	feed, errGetFeedByURL := fetchFeed(context.Background(), nextFeed.Url)
 	if errGetFeedByURL != nil {
-		log.Println("couldn't fetch feed by URL", errGetFeedByURL)
+		log.Println("couldn't fetch feed by URL:", errGetFeedByURL)
 		return 
 	}
 
-	printRSSFeed(feed)
+	// printRSSFeed(feed)
+
+	// Save posts to database
+	for _, item := range feed.Channel.Item {
+		parsedTime, errParseTime := time.Parse(time.RFC1123Z, item.PubDate)
+		if errParseTime != nil {
+			log.Println("couldn't parse time", errParseTime)
+		}
+		_, errCreatePost := dbQueries.CreatePost(context.Background(), database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			Title: item.Title,
+			Url: item.Link,
+			Description: item.Description,
+			PublishedAt: parsedTime,
+			FeedID: nextFeed.ID,
+		})
+		if errCreatePost != nil && errCreatePost.Error() != `pq: duplicate key value violates unique constraint "posts_url_key"` {
+			log.Println("couldn't insert post into database:", errCreatePost)
+		}
+	}
+
 }
-func printRSSFeed(feed *RSSFeed) {
+
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+
+	limit := 2
+
+	if len(cmd.Arguments) > 1 {
+		return fmt.Errorf("usage: %s [limit]", cmd.Name)
+
+	} else if len(cmd.Arguments) == 1 {
+		parsedInt, errAtoi := strconv.Atoi(cmd.Arguments[0])
+		if errAtoi != nil {
+			return fmt.Errorf("couldn't parse limit arg: %w", errAtoi)
+		}
+		limit = parsedInt
+	}
+	
+	dbQueries := s.db
+	posts, errGetPosts := dbQueries.GetPostsForUser(context.Background(), database.GetPostsForUserParams{UserID: user.ID, Limit: int32(limit)})
+	if errGetPosts != nil {
+		return fmt.Errorf("couldn't get posts for user: %w", errGetPosts)
+	}
+
+	for i, post := range posts {
+		fmt.Printf("POST %v\n", i + 1)
+		printPost(post)
+		fmt.Println("--------------------------------")
+	}
+
+	return nil
+}
+
+
+func printPost(post database.GetPostsForUserRow) {
+
+	// Print RSSItem's fields
+	fmt.Printf("Title: %v\n\n", post.Title)
+	fmt.Printf("Link: %v\n\n", post.Url)
+	fmt.Printf("Description: %v\n\n", post.Description)
+	fmt.Printf("PubDate: %v\n", post.PublishedAt)
+} 
+
+/* func printRSSFeed(feed *RSSFeed) {
 
 	// Print channel's info
 	fmt.Printf(" * Title: %v\n", feed.Channel.Title)
 	for i, link := range feed.Channel.Link {
 		if link.Text != "" {
-			fmt.Printf(" * Link %v: %v\n", i+1, link.Text)
+			fmt.Printf(" * Link %v: %v\n", i + 1, link.Text)
 		} else if link.Href != "" {
-			fmt.Printf(" * Link %v: %v\n", i+1, link.Href)
+			fmt.Printf(" * Link %v: %v\n", i + 1, link.Href)
 		}
 	}
 	fmt.Printf(" * Description: %v\n", feed.Channel.Description)
@@ -77,7 +145,7 @@ func printRSSFeed(feed *RSSFeed) {
 	fmt.Println(" * Item's list:")
 	fmt.Println("--------------------")
 	for i, item := range feed.Channel.Item {
-		fmt.Printf("* Item %v:\n\n", i+1)
+		fmt.Printf("* Item %v:\n\n", i + 1)
 		printRSSItem(item)
 		fmt.Println("--------------------")
 	}
@@ -90,4 +158,4 @@ func printRSSItem(item RSSItem) {
 	fmt.Printf("Link: %v\n\n", item.Link)
 	fmt.Printf("Description: %v\n\n", item.Description)
 	fmt.Printf("PubDate: %v\n", item.PubDate)
-}
+} */ 
