@@ -10,7 +10,7 @@ import (
 // Set default name and content for .JSON config file
 const (
 	JSON_NAME    = ".rssconfig.json"
-	INITIAL_JSON = `{"db_url": "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable"}`
+	INITIAL_JSON = `{"db_url": "postgres://postgres:postgres@localhost:5432/rss?sslmode=disable"}`
 )
 
 type Config struct {
