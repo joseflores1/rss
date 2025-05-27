@@ -44,7 +44,6 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 
 	// Set User-Agent header and initialize client
 	req.Header.Set("User-Agent", "gator")
-
 	client := &http.Client{Timeout: time.Second * 5}
 
 	// Do the request through the client
@@ -52,7 +51,6 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	if errDo != nil {
 		return nil, fmt.Errorf("couldn't do the request: %w", errDo)
 	}
-
 	defer resp.Body.Close()
 
 	// Read response body
@@ -71,6 +69,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Unescape Titles and Descriptions
 	unescapeRSS(&rssFeed)
 
+	// Return normally
 	return &rssFeed, nil
 }
 
@@ -80,7 +79,7 @@ func unescapeRSS(feed *RSSFeed) {
 	// Change of fields
 	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
 	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
-	for i := 0; i < len(feed.Channel.Item); i++ {
+	for i := range feed.Channel.Item {
 		feed.Channel.Item[i].Title = html.UnescapeString(feed.Channel.Item[i].Title)
 		feed.Channel.Item[i].Description = html.UnescapeString(feed.Channel.Item[i].Description)
 	}

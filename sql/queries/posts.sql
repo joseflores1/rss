@@ -13,7 +13,7 @@ VALUES (
 RETURNING *;
 
 -- name: GetPostsForUser :many
-SELECT * 
+SELECT posts.* 
 FROM posts
 JOIN feeds_follows ON feeds_follows.feed_id = posts.feed_id
 WHERE feeds_follows.user_id = $1
