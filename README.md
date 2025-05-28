@@ -50,7 +50,7 @@ he
 go install github.com/joseflores1/rss@latest
 ```
 \
-**THIS WOULD WORK IF I SOMEHOW COULD, THROUGH THE BINARY, AUTOMATICALLY CREATE AND POPULATE THE NEEDED DATABASE (IS THAT LEGAL?)**
+**_This would work if I somehow could, through the binary, create and populate the needed database (is that even legal?)_**
 
 
 Because this is not the case, the following must be done:
@@ -68,7 +68,7 @@ Because this is not the case, the following must be done:
     cd sql/schema/
     goose postgres <connection_string> up
     ```
-    Where the connection string is of the type `protocol://username:password@host:port/database` (e.g. `postgres://postgres:postgres@localhost:5432/gator`)
+    Where the connection string is of the type `protocol://username:password@host:port/database` (e.g. `postgres://postgres:postgres@localhost:5432/rss`)
 
 \
 These steps should create and populate the `rss` database needed for the program to work
@@ -77,13 +77,13 @@ These steps should create and populate the `rss` database needed for the program
 You just write commands in the following way:
 
 ```bash
-rss <command_name> [<args>]
+rss <command_name> [<args>...]
 ```
 
 ## Available commands
 
 - `addfeed <feed_name> <feed_url>` – Add a new RSS feed using the given URL and names it according to `<feed_name>` (requires login)
-- `agg` – Scrap the added feeds for posts to save into the database (requires login and an added feed)
+- `agg <time_between_requests>` – Scrap the added feeds for posts to save into the database, check [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) for the accepted `<time_between_requests>` formats (requires login and an added feed)
 - `browse [<limit>]` – Browses the posts of the feeds that the user follows, a `<limit>` argument can be passed to limit the number of posts shown in console (default is 2)
 - `feeds` – List all added feeds
 - `follow <feed_url>` – Follow a feed (requires login)
