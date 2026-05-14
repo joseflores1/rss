@@ -1,6 +1,4 @@
-# **_Note: this is mock documentation_**
-
-# rss 😎
+# RSS web feed
 rss is a multi-user feed aggregator CLI application written in Go. It is only intented for local use and mainly allows the user to:
 
 - Add RSS feeds from across the internet to be collected
